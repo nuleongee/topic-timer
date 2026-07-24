@@ -207,13 +207,24 @@ export default function TopicTimer() {
         </div>
       </div>
 
-      {/* 링 타이머 */}
+      {/* 링 타이머 — 작은 창에서는 남는 높이(비링 요소 약 340px 제외)에 맞춰 축소 */}
       <div
-        style={{ position: "relative", width: SIZE, height: SIZE, cursor: "pointer" }}
+        style={{
+          position: "relative",
+          width: `clamp(140px, min(90vw, 100vh - 340px), ${SIZE}px)`,
+          aspectRatio: "1",
+          containerType: "size",
+          cursor: "pointer",
+        }}
         onClick={skipToNext}
         title="클릭하면 이 토픽을 끝내고 다음 토픽으로"
       >
-        <svg width={SIZE} height={SIZE} style={{ transform: "rotate(-90deg)" }}>
+        <svg
+          viewBox={`0 0 ${SIZE} ${SIZE}`}
+          width="100%"
+          height="100%"
+          style={{ transform: "rotate(-90deg)", display: "block" }}
+        >
           <circle
             cx={SIZE / 2}
             cy={SIZE / 2}
@@ -248,7 +259,7 @@ export default function TopicTimer() {
         >
           <div
             style={{
-              fontSize: 72,
+              fontSize: "clamp(28px, 22.5cqw, 72px)",
               fontWeight: 700,
               fontVariantNumeric: "tabular-nums",
               fontFamily: "ui-monospace, 'SF Mono', 'Cascadia Mono', monospace",
@@ -257,7 +268,13 @@ export default function TopicTimer() {
           >
             {displayTime}
           </div>
-          <div style={{ fontSize: 13, opacity: 0.5, letterSpacing: "0.08em" }}>
+          <div
+            style={{
+              fontSize: "clamp(10px, 4cqw, 13px)",
+              opacity: 0.5,
+              letterSpacing: "0.08em",
+            }}
+          >
             {running ? "터치하면 다음 토픽으로" : "Space 또는 시작 버튼으로 시작"}
           </div>
         </div>
