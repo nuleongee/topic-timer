@@ -43,9 +43,11 @@
 
 - index.html에 `box-sizing: border-box` 전역 리셋 — content-box에서는
   `minHeight: 100vh` + 상하 패딩 64px가 뷰포트 밖으로 더해져 상시 스크롤 발생
-- 링 크기: `clamp(140px, min(90vw, 100vh - 340px), 320px)` — 340px은
-  링 외 요소(헤더·버튼·도트·gap·패딩) 높이 합. 큰 창에서는 기존 320px 유지
+- 축소 우선순위: 링이 주인공 — 작은 창에서는 헤더·버튼·gap·패딩이 먼저
+  vh 기반 clamp()로 줄고, 링은 남는 높이를 차지
+  (`clamp(180px, min(90vw, 100vh - 250px), 320px)`, 250px = 비링 요소 최소 높이 합)
 - SVG는 viewBox 스케일링, 시간·안내 폰트는 컨테이너 쿼리 단위(cqw)로 링에 비례
+- 링 스트로크 14 → 20px (사용자 피드백: 원형 선이 얇음)
 
 ## Vercel
 
