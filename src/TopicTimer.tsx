@@ -185,16 +185,6 @@ export default function TopicTimer() {
       <div style={{ textAlign: "center" }}>
         <div
           style={{
-            fontSize: 12,
-            letterSpacing: "0.25em",
-            opacity: 0.55,
-            marginBottom: 6,
-          }}
-        >
-          지금 보는 토픽
-        </div>
-        <div
-          style={{
             fontSize: "clamp(26px, 6vh, 44px)",
             fontWeight: 800,
             lineHeight: 1,
@@ -207,17 +197,17 @@ export default function TopicTimer() {
         </div>
       </div>
 
-      {/* 링 타이머 — 주변 요소가 먼저 줄고, 링은 남는 높이(비링 최소 약 250px 제외)만큼 유지 */}
+      {/* 링 타이머 — 주변 요소가 먼저 줄고, 링은 남는 높이(비링 최소 약 210px 제외)만큼 유지 */}
       <div
         style={{
           position: "relative",
-          width: `clamp(180px, min(90vw, 100vh - 250px), ${SIZE}px)`,
+          width: `clamp(180px, min(90vw, 100vh - 210px), ${SIZE}px)`,
           aspectRatio: "1",
           containerType: "size",
           cursor: "pointer",
         }}
-        onClick={skipToNext}
-        title="클릭하면 이 토픽을 끝내고 다음 토픽으로"
+        onClick={() => (running ? skipToNext() : setRunning(true))}
+        title={running ? "클릭하면 이 토픽을 끝내고 다음 토픽으로" : "클릭하면 시작"}
       >
         <svg
           viewBox={`0 0 ${SIZE} ${SIZE}`}
@@ -275,7 +265,7 @@ export default function TopicTimer() {
               letterSpacing: "0.08em",
             }}
           >
-            {running ? "터치하면 다음 토픽으로" : "Space 또는 시작 버튼으로 시작"}
+            {running ? "터치하면 다음 토픽으로" : "터치 또는 Space로 시작"}
           </div>
         </div>
       </div>
@@ -409,22 +399,6 @@ export default function TopicTimer() {
         </button>
       </div>
 
-      {/* 다음 색 미리보기 */}
-      <div style={{ display: "flex", gap: 6, alignItems: "center", opacity: 0.7 }}>
-        <span style={{ fontSize: 12, marginRight: 4 }}>색 순환</span>
-        {CYCLE_COLORS.map((c, i) => (
-          <span
-            key={c.name}
-            style={{
-              width: i === cycle % CYCLE_COLORS.length ? 14 : 8,
-              height: i === cycle % CYCLE_COLORS.length ? 14 : 8,
-              borderRadius: "50%",
-              background: c.accent,
-              transition: "all 300ms ease",
-            }}
-          />
-        ))}
-      </div>
     </div>
   );
 }
