@@ -7,7 +7,7 @@
 | Vite 7 + React 19 | 단일 화면 클라이언트 전용 앱에 최경량. Vercel zero-config 지원 |
 | TypeScript | 사용자 결정. 컴포넌트를 .tsx로 변환 |
 | vite-plugin-pwa | manifest·서비스 워커(Workbox) 자동 생성. registerType: autoUpdate |
-| @vite-pwa/assets-generator | icon.svg 하나에서 전체 아이콘 세트 생성 (일회성 npx) |
+| sharp + png-to-ico | scripts/generate-icons.mjs로 SVG 2종에서 아이콘 세트 생성 (--no-save 설치) |
 
 ## 프로젝트 구조
 
@@ -48,6 +48,21 @@
   (`clamp(180px, min(90vw, 100vh - 250px), 320px)`, 250px = 비링 요소 최소 높이 합)
 - SVG는 viewBox 스케일링, 시간·안내 폰트는 컨테이너 쿼리 단위(cqw)로 링에 비례
 - 링 스트로크 14 → 20px (사용자 피드백: 원형 선이 얇음)
+
+## 아이콘 전략 (T10)
+
+- `icon.svg` — 투명 여백 + 스쿼클(라운드 사각형). macOS 독·파비콘·pwa-*.png용.
+  Chrome이 macOS 앱 아이콘 생성 시 여백 없는 아이콘을 흰 컨테이너에 얹는
+  문제(하얀 테두리)를 회피
+- `icon-square.svg` — 풀블리드. iOS apple-touch-icon(iOS가 자체 라운딩)과
+  maskable(콘텐츠는 중앙 80% 안전영역)용
+- 디자인: 라디얼 그라데이션 배경 + 앰버 그라데이션 아크 + 글로우
+- 재생성: `npm i --no-save sharp png-to-ico && node scripts/generate-icons.mjs`
+
+## 플랫폼별 안내 문구
+
+- `(hover: hover)` 미디어 쿼리로 판별: 터치 전용 기기는 "터치하면 시작",
+  마우스/키보드 기기는 "터치 또는 Space로 시작"
 
 ## Vercel
 
