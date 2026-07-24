@@ -144,7 +144,7 @@ export default function TopicTimer() {
 
   // 링 지오메트리
   const SIZE = 320;
-  const STROKE = 14;
+  const STROKE = 20;
   const R = (SIZE - STROKE) / 2;
   const CIRC = 2 * Math.PI * R;
 
@@ -158,8 +158,8 @@ export default function TopicTimer() {
         flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
-        gap: 28,
-        padding: "32px 16px",
+        gap: "clamp(12px, 3.5vh, 28px)",
+        padding: "clamp(14px, 3.5vh, 32px) 16px",
         background: color.deep,
         transition: "background 700ms ease",
         fontFamily:
@@ -195,7 +195,7 @@ export default function TopicTimer() {
         </div>
         <div
           style={{
-            fontSize: 44,
+            fontSize: "clamp(26px, 6vh, 44px)",
             fontWeight: 800,
             lineHeight: 1,
             color: color.accent,
@@ -207,11 +207,11 @@ export default function TopicTimer() {
         </div>
       </div>
 
-      {/* 링 타이머 — 작은 창에서는 남는 높이(비링 요소 약 340px 제외)에 맞춰 축소 */}
+      {/* 링 타이머 — 주변 요소가 먼저 줄고, 링은 남는 높이(비링 최소 약 250px 제외)만큼 유지 */}
       <div
         style={{
           position: "relative",
-          width: `clamp(140px, min(90vw, 100vh - 340px), ${SIZE}px)`,
+          width: `clamp(180px, min(90vw, 100vh - 250px), ${SIZE}px)`,
           aspectRatio: "1",
           containerType: "size",
           cursor: "pointer",
@@ -287,14 +287,14 @@ export default function TopicTimer() {
             key={p.sec}
             onClick={() => changeInterval(p.sec)}
             style={{
-              padding: "8px 16px",
+              padding: "clamp(5px, 1.2vh, 8px) clamp(10px, 2.4vh, 16px)",
               borderRadius: 999,
               border: "1px solid",
               borderColor: intervalSec === p.sec ? color.accent : "rgba(255,255,255,0.18)",
               background: intervalSec === p.sec ? color.accent : "transparent",
               color: intervalSec === p.sec ? color.deep : "#EDEDEA",
               fontWeight: 700,
-              fontSize: 14,
+              fontSize: "clamp(11px, 2.2vh, 14px)",
               cursor: "pointer",
               transition: "all 300ms ease",
             }}
@@ -305,14 +305,14 @@ export default function TopicTimer() {
         <button
           onClick={() => setCustomOpen((o) => !o)}
           style={{
-            padding: "8px 16px",
+            padding: "clamp(5px, 1.2vh, 8px) clamp(10px, 2.4vh, 16px)",
             borderRadius: 999,
             border: "1px solid",
             borderColor: isCustomActive ? color.accent : "rgba(255,255,255,0.18)",
             background: isCustomActive ? color.accent : "transparent",
             color: isCustomActive ? color.deep : "#EDEDEA",
             fontWeight: 700,
-            fontSize: 14,
+            fontSize: "clamp(11px, 2.2vh, 14px)",
             cursor: "pointer",
           }}
         >
@@ -364,13 +364,13 @@ export default function TopicTimer() {
         <button
           onClick={() => setRunning((r) => !r)}
           style={{
-            padding: "12px 32px",
+            padding: "clamp(8px, 1.8vh, 12px) clamp(20px, 5vh, 32px)",
             borderRadius: 12,
             border: "none",
             background: color.accent,
             color: color.deep,
             fontWeight: 800,
-            fontSize: 16,
+            fontSize: "clamp(13px, 2.5vh, 16px)",
             cursor: "pointer",
             transition: "background 700ms ease",
           }}
@@ -380,13 +380,13 @@ export default function TopicTimer() {
         <button
           onClick={reset}
           style={{
-            padding: "12px 20px",
+            padding: "clamp(8px, 1.8vh, 12px) clamp(12px, 3vh, 20px)",
             borderRadius: 12,
             border: "1px solid rgba(255,255,255,0.2)",
             background: "transparent",
             color: "#EDEDEA",
             fontWeight: 600,
-            fontSize: 15,
+            fontSize: "clamp(12px, 2.3vh, 15px)",
             cursor: "pointer",
           }}
         >
@@ -396,12 +396,12 @@ export default function TopicTimer() {
           onClick={() => setSoundOn((s) => !s)}
           title="사이클 전환 알림음"
           style={{
-            padding: "12px 16px",
+            padding: "clamp(8px, 1.8vh, 12px) clamp(10px, 2.5vh, 16px)",
             borderRadius: 12,
             border: "1px solid rgba(255,255,255,0.2)",
             background: soundOn ? "rgba(255,255,255,0.1)" : "transparent",
             color: "#EDEDEA",
-            fontSize: 15,
+            fontSize: "clamp(12px, 2.3vh, 15px)",
             cursor: "pointer",
           }}
         >
