@@ -9,3 +9,5 @@
 - [x] T5. 검증: npm run build (manifest.webmanifest·sw.js 확인)
       → npm run preview + agent-browser (렌더·SW 등록·타이머 동작)
 - [x] T6. 커밋 (기능별 분리) + Vercel 배포 방법 안내
+- [x] T7. 작은 창 스크롤 버그 수정: box-sizing 리셋 + 링/폰트 반응형 축소
+      (570×760·500×600·400×520 스크롤 없음, 1280×900 기존 크기 유지 검증)

@@ -39,6 +39,14 @@
   - webkitAudioContext 접근 시 타입 캐스트 1곳
 - 원본 artifact/topic-timer.jsx는 참조용으로 보존
 
+## 작은 창 대응 (설치형 PWA 창 리사이즈)
+
+- index.html에 `box-sizing: border-box` 전역 리셋 — content-box에서는
+  `minHeight: 100vh` + 상하 패딩 64px가 뷰포트 밖으로 더해져 상시 스크롤 발생
+- 링 크기: `clamp(140px, min(90vw, 100vh - 340px), 320px)` — 340px은
+  링 외 요소(헤더·버튼·도트·gap·패딩) 높이 합. 큰 창에서는 기존 320px 유지
+- SVG는 viewBox 스케일링, 시간·안내 폰트는 컨테이너 쿼리 단위(cqw)로 링에 비례
+
 ## Vercel
 
 - 프레임워크 자동 감지(Vite): build `vite build`, output `dist/`
