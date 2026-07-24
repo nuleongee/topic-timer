@@ -24,6 +24,7 @@ export default function TopicTimer() {
   const [intervalSec, setIntervalSec] = useState(60);
   const [running, setRunning] = useState(false);
   const [elapsed, setElapsed] = useState(0); // 현재 사이클 내 경과(초, 소수)
+  const [total, setTotal] = useState(0); // 전체 누적 경과(초) — 스킵·인터벌 변경과 무관
   const [cycle, setCycle] = useState(0); // 0-based → 토픽 번호는 +1
   const [soundOn, setSoundOn] = useState(true);
   const [flash, setFlash] = useState(false);
@@ -33,6 +34,7 @@ export default function TopicTimer() {
   const rafRef = useRef<number | null>(null);
   const lastTsRef = useRef<number | null>(null);
   const elapsedRef = useRef(0);
+  const totalRef = useRef(0);
   const audioCtxRef = useRef<AudioContext | null>(null);
 
   const beep = useCallback(() => {
@@ -70,6 +72,7 @@ export default function TopicTimer() {
       const dt = (ts - lastTsRef.current) / 1000;
       lastTsRef.current = ts;
       elapsedRef.current += dt;
+      totalRef.current += dt;
 
       if (elapsedRef.current >= intervalSec) {
         elapsedRef.current -= intervalSec;
@@ -79,6 +82,7 @@ export default function TopicTimer() {
         if (soundOn) beep();
       }
       setElapsed(elapsedRef.current);
+      setTotal(totalRef.current);
       rafRef.current = requestAnimationFrame(tick);
     },
     [intervalSec, soundOn, beep]
@@ -119,6 +123,8 @@ export default function TopicTimer() {
     setRunning(false);
     elapsedRef.current = 0;
     setElapsed(0);
+    totalRef.current = 0;
+    setTotal(0);
     setCycle(0);
   };
 
@@ -144,6 +150,12 @@ export default function TopicTimer() {
       : `${mm}:${ss}`;
 
   const progress = Math.min(1, elapsed / intervalSec);
+
+  const totalSecInt = Math.floor(total);
+  const th = Math.floor(totalSecInt / 3600);
+  const tm = String(Math.floor((totalSecInt % 3600) / 60)).padStart(2, "0");
+  const tss = String(totalSecInt % 60).padStart(2, "0");
+  const totalDisplay = th > 0 ? `${th}:${tm}:${tss}` : `${tm}:${tss}`;
 
   // 링 지오메트리
   const SIZE = 320;
@@ -260,6 +272,16 @@ export default function TopicTimer() {
             }}
           >
             {displayTime}
+          </div>
+          <div
+            style={{
+              fontSize: "clamp(11px, 4.5cqw, 15px)",
+              opacity: 0.45,
+              fontVariantNumeric: "tabular-nums",
+              letterSpacing: "0.05em",
+            }}
+          >
+            총 {totalDisplay}
           </div>
           <div
             style={{
