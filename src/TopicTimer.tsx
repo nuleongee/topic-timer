@@ -10,6 +10,9 @@ const CYCLE_COLORS = [
   { name: "스카이", accent: "#38BDF8", deep: "#06202E" },
 ];
 
+// 터치 전용 기기(폰·태블릿)에서는 Space 키 안내를 숨김
+const HAS_POINTER = window.matchMedia("(hover: hover)").matches;
+
 const PRESETS = [
   { label: "30초", sec: 30 },
   { label: "1분", sec: 60 },
@@ -265,7 +268,11 @@ export default function TopicTimer() {
               letterSpacing: "0.08em",
             }}
           >
-            {running ? "터치하면 다음 토픽으로" : "터치 또는 Space로 시작"}
+            {running
+              ? "터치하면 다음 토픽으로"
+              : HAS_POINTER
+                ? "터치 또는 Space로 시작"
+                : "터치하면 시작"}
           </div>
         </div>
       </div>
