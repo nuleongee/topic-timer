@@ -81,6 +81,9 @@
 - 스크롤 잠금(T14): html/body `height:100%; overflow:hidden;
   overscroll-behavior:none` — 콘텐츠는 반응형 축소로 항상 화면 안에 들어오므로
   빈 스크롤·iOS 고무줄 바운스를 문서 레벨에서 차단
+- 하단 갈색 고정 영역 수정(T16): 컨테이너를 100vh 대신 html→body→#root→컨테이너
+  height:100% 체인으로 뷰포트에 정확히 맞추고, html/body 배경·theme-color를
+  현재 토픽 deep 색과 useEffect로 동기화 — 틈이 노출돼도 첫 색으로 고정되지 않음
 - iOS 상태 바 흰색 문제: 기본 status-bar-style이 흰 배경이라 발생 →
   `apple-mobile-web-app-status-bar-style: black-translucent`로 투명화하고
   `viewport-fit=cover` + 컨테이너 safe-area-inset 패딩으로 앱 배경이
