@@ -136,16 +136,21 @@ export default function TopicTimer() {
     };
   }, [running, tick]);
 
-  // html/body 배경과 theme-color를 현재 토픽 색과 동기화
-  // (컨테이너 밖 영역이 노출돼도 첫 색으로 고정되지 않게)
+  // html/body 배경과 theme-color를 현재 토픽 색과 동기화하고,
+  // 플래시 시 캔버스 배경도 함께 번쩍임 — 컨테이너·fixed 오버레이가 못 닿는
+  // 영역(iOS 하단 세이프에어리어 등)은 캔버스 배경만이 항상 칠할 수 있음
   useEffect(() => {
     const deep = CYCLE_COLORS[cycle % CYCLE_COLORS.length].deep;
-    document.documentElement.style.background = deep;
-    document.body.style.background = deep;
+    const bg = flash ? `color-mix(in srgb, ${deep} 50%, white)` : deep;
+    const transition = flash ? "background 60ms" : "background 350ms ease";
+    for (const el of [document.documentElement, document.body]) {
+      el.style.transition = transition;
+      el.style.background = bg;
+    }
     document
       .querySelector('meta[name="theme-color"]')
       ?.setAttribute("content", deep);
-  }, [cycle]);
+  }, [cycle, flash]);
 
   // 스페이스바 = 시작/일시정지
   useEffect(() => {
