@@ -28,3 +28,5 @@
       setRecords 지연 실행으로 소요 시간이 0으로 기록되던 버그 수정)
 - [x] T14. 스크롤 잠금: overflow hidden + overscroll-behavior none
       (강제 scrollTo에도 scrollY 0 고정, 400×520 콘텐츠 전부 표시 검증)
+- [x] T15. 수동 모드 랩 링: 설정 시간마다 진한 색으로 링 반복 진행 +
+      매 배수마다 플래시·알림음 (랩 1·2·4 색 순환과 구분성 검증)
