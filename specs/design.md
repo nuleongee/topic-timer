@@ -59,6 +59,15 @@
 - 디자인: 라디얼 그라데이션 배경 + 앰버 그라데이션 아크 + 글로우
 - 재생성: `npm i --no-save sharp png-to-ico && node scripts/generate-icons.mjs`
 
+## 모바일 설치형 앱 대응 (T12)
+
+- 줌 방지: viewport 메타 `maximum-scale=1, user-scalable=no`
+  (설치형 standalone 앱에서는 iOS도 존중)
+- iOS 상태 바 흰색 문제: 기본 status-bar-style이 흰 배경이라 발생 →
+  `apple-mobile-web-app-status-bar-style: black-translucent`로 투명화하고
+  `viewport-fit=cover` + 컨테이너 safe-area-inset 패딩으로 앱 배경이
+  상태 바 뒤까지 깔리게 처리. html 요소 배경도 다크로 지정
+
 ## 플랫폼별 안내 문구
 
 - `(hover: hover)` 미디어 쿼리로 판별: 터치 전용 기기는 "터치하면 시작",
