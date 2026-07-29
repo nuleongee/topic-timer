@@ -75,6 +75,9 @@
 
 - 줌 방지: viewport 메타 `maximum-scale=1, user-scalable=no`
   (설치형 standalone 앱에서는 iOS도 존중)
+- 스크롤 잠금(T14): html/body `height:100%; overflow:hidden;
+  overscroll-behavior:none` — 콘텐츠는 반응형 축소로 항상 화면 안에 들어오므로
+  빈 스크롤·iOS 고무줄 바운스를 문서 레벨에서 차단
 - iOS 상태 바 흰색 문제: 기본 status-bar-style이 흰 배경이라 발생 →
   `apple-mobile-web-app-status-bar-style: black-translucent`로 투명화하고
   `viewport-fit=cover` + 컨테이너 safe-area-inset 패딩으로 앱 배경이
