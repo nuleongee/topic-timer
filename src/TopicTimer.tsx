@@ -136,6 +136,17 @@ export default function TopicTimer() {
     };
   }, [running, tick]);
 
+  // html/body 배경과 theme-color를 현재 토픽 색과 동기화
+  // (컨테이너 밖 영역이 노출돼도 첫 색으로 고정되지 않게)
+  useEffect(() => {
+    const deep = CYCLE_COLORS[cycle % CYCLE_COLORS.length].deep;
+    document.documentElement.style.background = deep;
+    document.body.style.background = deep;
+    document
+      .querySelector('meta[name="theme-color"]')
+      ?.setAttribute("content", deep);
+  }, [cycle]);
+
   // 스페이스바 = 시작/일시정지
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -225,7 +236,7 @@ export default function TopicTimer() {
   return (
     <div
       style={{
-        minHeight: "100vh",
+        height: "100%",
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
@@ -274,7 +285,7 @@ export default function TopicTimer() {
       <div
         style={{
           position: "relative",
-          width: `clamp(180px, min(90vw, 100vh - 210px), ${SIZE}px)`,
+          width: `clamp(180px, min(90vw, 100dvh - 210px), ${SIZE}px)`,
           aspectRatio: "1",
           containerType: "size",
           cursor: "pointer",
