@@ -253,11 +253,14 @@ export default function TopicTimer() {
         touchAction: "manipulation",
       }}
     >
-      {/* 사이클 전환 시 은은한 플래시 오버레이 */}
+      {/* 사이클 전환 시 은은한 플래시 오버레이 — 세이프에어리어(노치·홈 인디케이터)까지 확장 */}
       <div
         style={{
           position: "fixed",
-          inset: 0,
+          top: "calc(-1 * env(safe-area-inset-top, 0px))",
+          right: 0,
+          left: 0,
+          bottom: "calc(-1 * env(safe-area-inset-bottom, 0px))",
           background: "#FFFFFF",
           opacity: flash ? 0.5 : 0,
           pointerEvents: "none",
@@ -537,7 +540,8 @@ export default function TopicTimer() {
         <button
           onClick={() => setRunning((r) => !r)}
           style={{
-            padding: "clamp(8px, 1.8vh, 12px) clamp(20px, 5vh, 32px)",
+            padding: "clamp(8px, 1.8vh, 12px) 0",
+            minWidth: "8em", // "시작"↔"일시정지" 전환 시 폭이 안 변하게 고정
             borderRadius: 12,
             border: "none",
             background: color.accent,
