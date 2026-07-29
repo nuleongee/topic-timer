@@ -34,6 +34,14 @@ const fmtClock = (sec: number) => {
   return h > 0 ? `${h}:${pad2(m)}:${pad2(s)}` : `${pad2(m)}:${pad2(s)}`;
 };
 
+// 랩(설정 시간 몇 바퀴째)마다 한 단계씩 진한 색 — 4단계 순환이라 몇 바퀴든 이전 랩과 구분됨
+const lapColor = (accent: string, lap: number) => {
+  const darken = (Math.max(0, lap) % 4) * 22;
+  return darken === 0
+    ? accent
+    : `color-mix(in srgb, ${accent} ${100 - darken}%, black)`;
+};
+
 export default function TopicTimer() {
   const [intervalSec, setIntervalSec] = useState(60);
   const [running, setRunning] = useState(false);
@@ -52,7 +60,7 @@ export default function TopicTimer() {
   const lastTsRef = useRef<number | null>(null);
   const elapsedRef = useRef(0);
   const totalRef = useRef(0);
-  const overtimeNotifiedRef = useRef(false); // 수동 모드 초과 알림 1회 보장
+  const lapNotifiedRef = useRef(0); // 수동 모드에서 마지막으로 알림한 랩 번호
   const audioCtxRef = useRef<AudioContext | null>(null);
 
   const beep = useCallback(() => {
@@ -101,12 +109,15 @@ export default function TopicTimer() {
           setTimeout(() => setFlash(false), 260);
           if (soundOn) beep();
         }
-      } else if (elapsedRef.current >= intervalSec && !overtimeNotifiedRef.current) {
-        // 수동 모드: 넘어가지 않고 초과 신호만 1회
-        overtimeNotifiedRef.current = true;
-        setFlash(true);
-        setTimeout(() => setFlash(false), 260);
-        if (soundOn) beep();
+      } else {
+        // 수동 모드: 넘어가지 않고 설정 시간 배수(1x, 2x, 3x…)마다 신호
+        const lap = Math.floor(elapsedRef.current / intervalSec);
+        if (lap > lapNotifiedRef.current) {
+          lapNotifiedRef.current = lap;
+          setFlash(true);
+          setTimeout(() => setFlash(false), 260);
+          if (soundOn) beep();
+        }
       }
       setElapsed(elapsedRef.current);
       setTotal(totalRef.current);
@@ -142,7 +153,7 @@ export default function TopicTimer() {
     const sec = elapsedRef.current;
     setRecords((r) => [...r, { sec, target: intervalSec }]);
     elapsedRef.current = 0;
-    overtimeNotifiedRef.current = false;
+    lapNotifiedRef.current = 0;
     setElapsed(0);
     setCycle((c) => c + 1);
     setFlash(true);
@@ -153,7 +164,7 @@ export default function TopicTimer() {
   const reset = () => {
     setRunning(false);
     elapsedRef.current = 0;
-    overtimeNotifiedRef.current = false;
+    lapNotifiedRef.current = 0;
     setElapsed(0);
     totalRef.current = 0;
     setTotal(0);
@@ -169,7 +180,7 @@ export default function TopicTimer() {
   const changeInterval = (sec: number) => {
     setIntervalSec(sec);
     elapsedRef.current = 0;
-    overtimeNotifiedRef.current = false;
+    lapNotifiedRef.current = 0;
     setElapsed(0);
     setCustomOpen(false);
   };
@@ -190,7 +201,12 @@ export default function TopicTimer() {
       ? `${String(Math.floor(intervalSec / 60)).padStart(2, "0")}:${String(intervalSec % 60).padStart(2, "0")}`
       : `${mm}:${ss}`;
 
-  const progress = Math.min(1, elapsed / intervalSec);
+  // 수동 모드: 설정 시간을 넘기면 랩이 올라가고 링이 한 단계 진한 색으로 다시 돈다
+  const lap = mode === "manual" ? Math.floor(elapsed / intervalSec) : 0;
+  const ringProgress =
+    mode === "manual"
+      ? (elapsed % intervalSec) / intervalSec
+      : Math.min(1, elapsed / intervalSec);
 
   const totalDisplay = fmtClock(total);
 
@@ -280,16 +296,27 @@ export default function TopicTimer() {
             stroke="rgba(255,255,255,0.08)"
             strokeWidth={STROKE}
           />
+          {/* 직전 랩까지 채워진 링 (수동 모드에서 설정 시간 초과 시) */}
+          {lap > 0 && (
+            <circle
+              cx={SIZE / 2}
+              cy={SIZE / 2}
+              r={R}
+              fill="none"
+              stroke={lapColor(color.accent, lap - 1)}
+              strokeWidth={STROKE}
+            />
+          )}
           <circle
             cx={SIZE / 2}
             cy={SIZE / 2}
             r={R}
             fill="none"
-            stroke={color.accent}
+            stroke={lapColor(color.accent, lap)}
             strokeWidth={STROKE}
             strokeLinecap="round"
             strokeDasharray={CIRC}
-            strokeDashoffset={CIRC * (1 - progress)}
+            strokeDashoffset={CIRC * (1 - ringProgress)}
             style={{ transition: "stroke 700ms ease" }}
           />
         </svg>
@@ -545,7 +572,7 @@ export default function TopicTimer() {
         </button>
         <button
           onClick={() => {
-            overtimeNotifiedRef.current = false;
+            lapNotifiedRef.current = 0;
             setMode((m) => (m === "auto" ? "manual" : "auto"));
           }}
           title="시간이 다 되면 자동으로 넘길지, 터치로 넘길지"
