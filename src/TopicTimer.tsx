@@ -174,7 +174,8 @@ export default function TopicTimer() {
         alignItems: "center",
         justifyContent: "center",
         gap: "clamp(12px, 3.5vh, 28px)",
-        padding: "clamp(14px, 3.5vh, 32px) 16px",
+        padding:
+          "max(clamp(14px, 3.5vh, 32px), env(safe-area-inset-top)) 16px max(clamp(14px, 3.5vh, 32px), env(safe-area-inset-bottom))",
         background: color.deep,
         transition: "background 700ms ease",
         fontFamily:
