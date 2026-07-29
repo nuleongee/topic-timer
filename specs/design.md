@@ -59,6 +59,18 @@
 - 디자인: 라디얼 그라데이션 배경 + 앰버 그라데이션 아크 + 글로우
 - 재생성: `npm i --no-save sharp png-to-ico && node scripts/generate-icons.mjs`
 
+## 진행 모드·통계 (T13)
+
+- 상태: `mode`("auto"|"manual"), `records`({sec, target}[]), `showStats`,
+  `overtimeNotifiedRef`(초과 알림 1회 보장)
+- tick 분기: auto — 기존 wrap+advance. manual — elapsed 계속 증가,
+  intervalSec 최초 통과 시 beep+flash 1회만
+- 토픽 완료 경로(터치/자동/스킵) 공통으로 records에 {sec: 소요, target: 당시 인터벌} 추가
+- 수동 초과 표시: displayTime을 elapsed 카운트업(mm:ss)으로 전환, 텍스트 색 accent
+- 통계: 완료 수, 세션 총 시간(total), 평균(sum(sec)/n), 목표 내 완료(sec<=target)
+- UI: 컨트롤 줄에 모드 토글 버튼("자동 넘김"/"터치 넘김")과 종료 버튼 추가,
+  통계는 전체 화면 오버레이
+
 ## 모바일 설치형 앱 대응 (T12)
 
 - 줌 방지: viewport 메타 `maximum-scale=1, user-scalable=no`
