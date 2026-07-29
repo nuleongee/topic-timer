@@ -20,6 +20,20 @@ const PRESETS = [
   { label: "3분", sec: 180 },
 ];
 
+// 완료한 토픽의 소요 시간과 당시 목표 인터벌
+type TopicRecord = { sec: number; target: number };
+
+const pad2 = (n: number) => String(n).padStart(2, "0");
+
+// 초 → mm:ss (1시간 이상이면 h:mm:ss)
+const fmtClock = (sec: number) => {
+  const t = Math.floor(sec);
+  const h = Math.floor(t / 3600);
+  const m = Math.floor((t % 3600) / 60);
+  const s = t % 60;
+  return h > 0 ? `${h}:${pad2(m)}:${pad2(s)}` : `${pad2(m)}:${pad2(s)}`;
+};
+
 export default function TopicTimer() {
   const [intervalSec, setIntervalSec] = useState(60);
   const [running, setRunning] = useState(false);
@@ -30,11 +44,15 @@ export default function TopicTimer() {
   const [flash, setFlash] = useState(false);
   const [customOpen, setCustomOpen] = useState(false);
   const [customVal, setCustomVal] = useState("");
+  const [mode, setMode] = useState<"auto" | "manual">("auto");
+  const [records, setRecords] = useState<TopicRecord[]>([]);
+  const [showStats, setShowStats] = useState(false);
 
   const rafRef = useRef<number | null>(null);
   const lastTsRef = useRef<number | null>(null);
   const elapsedRef = useRef(0);
   const totalRef = useRef(0);
+  const overtimeNotifiedRef = useRef(false); // 수동 모드 초과 알림 1회 보장
   const audioCtxRef = useRef<AudioContext | null>(null);
 
   const beep = useCallback(() => {
@@ -74,9 +92,18 @@ export default function TopicTimer() {
       elapsedRef.current += dt;
       totalRef.current += dt;
 
-      if (elapsedRef.current >= intervalSec) {
-        elapsedRef.current -= intervalSec;
-        setCycle((c) => c + 1);
+      if (mode === "auto") {
+        if (elapsedRef.current >= intervalSec) {
+          elapsedRef.current -= intervalSec;
+          setRecords((r) => [...r, { sec: intervalSec, target: intervalSec }]);
+          setCycle((c) => c + 1);
+          setFlash(true);
+          setTimeout(() => setFlash(false), 260);
+          if (soundOn) beep();
+        }
+      } else if (elapsedRef.current >= intervalSec && !overtimeNotifiedRef.current) {
+        // 수동 모드: 넘어가지 않고 초과 신호만 1회
+        overtimeNotifiedRef.current = true;
         setFlash(true);
         setTimeout(() => setFlash(false), 260);
         if (soundOn) beep();
@@ -85,7 +112,7 @@ export default function TopicTimer() {
       setTotal(totalRef.current);
       rafRef.current = requestAnimationFrame(tick);
     },
-    [intervalSec, soundOn, beep]
+    [intervalSec, soundOn, beep, mode]
   );
 
   useEffect(() => {
@@ -111,7 +138,11 @@ export default function TopicTimer() {
   }, []);
 
   const skipToNext = () => {
+    // setRecords 업데이터는 지연 실행되므로 리셋 전에 값을 캡처
+    const sec = elapsedRef.current;
+    setRecords((r) => [...r, { sec, target: intervalSec }]);
     elapsedRef.current = 0;
+    overtimeNotifiedRef.current = false;
     setElapsed(0);
     setCycle((c) => c + 1);
     setFlash(true);
@@ -122,15 +153,23 @@ export default function TopicTimer() {
   const reset = () => {
     setRunning(false);
     elapsedRef.current = 0;
+    overtimeNotifiedRef.current = false;
     setElapsed(0);
     totalRef.current = 0;
     setTotal(0);
     setCycle(0);
+    setRecords([]);
+  };
+
+  const endSession = () => {
+    setRunning(false);
+    setShowStats(true);
   };
 
   const changeInterval = (sec: number) => {
     setIntervalSec(sec);
     elapsedRef.current = 0;
+    overtimeNotifiedRef.current = false;
     setElapsed(0);
     setCustomOpen(false);
   };
@@ -141,21 +180,23 @@ export default function TopicTimer() {
   };
 
   const color = CYCLE_COLORS[cycle % CYCLE_COLORS.length];
+  const overtime = mode === "manual" && elapsed >= intervalSec;
   const remaining = Math.max(0, intervalSec - elapsed);
   const mm = String(Math.floor(remaining / 60)).padStart(2, "0");
   const ss = String(Math.ceil(remaining % 60) % 60).padStart(2, "0");
-  const displayTime =
-    Math.ceil(remaining) === intervalSec && intervalSec >= 60
+  const displayTime = overtime
+    ? fmtClock(elapsed) // 초과 시 카운트업 (01:01, 01:02…)
+    : Math.ceil(remaining) === intervalSec && intervalSec >= 60
       ? `${String(Math.floor(intervalSec / 60)).padStart(2, "0")}:${String(intervalSec % 60).padStart(2, "0")}`
       : `${mm}:${ss}`;
 
   const progress = Math.min(1, elapsed / intervalSec);
 
-  const totalSecInt = Math.floor(total);
-  const th = Math.floor(totalSecInt / 3600);
-  const tm = String(Math.floor((totalSecInt % 3600) / 60)).padStart(2, "0");
-  const tss = String(totalSecInt % 60).padStart(2, "0");
-  const totalDisplay = th > 0 ? `${th}:${tm}:${tss}` : `${tm}:${tss}`;
+  const totalDisplay = fmtClock(total);
+
+  const doneCount = records.length;
+  const avgSec = doneCount ? records.reduce((a, r) => a + r.sec, 0) / doneCount : 0;
+  const withinCount = records.filter((r) => r.sec <= r.target).length;
 
   // 링 지오메트리
   const SIZE = 320;
@@ -270,6 +311,8 @@ export default function TopicTimer() {
               fontVariantNumeric: "tabular-nums",
               fontFamily: "ui-monospace, 'SF Mono', 'Cascadia Mono', monospace",
               lineHeight: 1,
+              color: overtime ? color.accent : undefined,
+              transition: "color 300ms ease",
             }}
           >
             {displayTime}
@@ -340,6 +383,70 @@ export default function TopicTimer() {
         </button>
       </div>
 
+      {/* 세션 통계 오버레이 */}
+      {showStats && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 10,
+            background: color.deep,
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 28,
+            padding: 24,
+          }}
+        >
+          <div style={{ fontSize: 26, fontWeight: 800, color: color.accent }}>
+            세션 통계
+          </div>
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "auto auto",
+              gap: "14px 28px",
+              fontSize: 17,
+              fontVariantNumeric: "tabular-nums",
+            }}
+          >
+            <span style={{ opacity: 0.6 }}>완료 토픽</span>
+            <span style={{ fontWeight: 700, textAlign: "right" }}>{doneCount}개</span>
+            <span style={{ opacity: 0.6 }}>세션 총 시간</span>
+            <span style={{ fontWeight: 700, textAlign: "right" }}>{totalDisplay}</span>
+            <span style={{ opacity: 0.6 }}>토픽당 평균</span>
+            <span style={{ fontWeight: 700, textAlign: "right" }}>
+              {doneCount ? fmtClock(avgSec) : "-"}
+            </span>
+            <span style={{ opacity: 0.6 }}>목표 내 완료</span>
+            <span style={{ fontWeight: 700, textAlign: "right" }}>
+              {doneCount
+                ? `${withinCount}/${doneCount} (${Math.round((withinCount / doneCount) * 100)}%)`
+                : "-"}
+            </span>
+          </div>
+          <button
+            onClick={() => {
+              reset();
+              setShowStats(false);
+            }}
+            style={{
+              padding: "12px 32px",
+              borderRadius: 12,
+              border: "none",
+              background: color.accent,
+              color: color.deep,
+              fontWeight: 800,
+              fontSize: 16,
+              cursor: "pointer",
+            }}
+          >
+            새 세션 시작
+          </button>
+        </div>
+      )}
+
       {customOpen && (
         <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
           <input
@@ -380,7 +487,15 @@ export default function TopicTimer() {
       )}
 
       {/* 하단 컨트롤 */}
-      <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+      <div
+        style={{
+          display: "flex",
+          gap: 10,
+          alignItems: "center",
+          flexWrap: "wrap",
+          justifyContent: "center",
+        }}
+      >
         <button
           onClick={() => setRunning((r) => !r)}
           style={{
@@ -411,6 +526,41 @@ export default function TopicTimer() {
           }}
         >
           리셋
+        </button>
+        <button
+          onClick={endSession}
+          title="세션을 끝내고 통계 보기"
+          style={{
+            padding: "clamp(8px, 1.8vh, 12px) clamp(12px, 3vh, 20px)",
+            borderRadius: 12,
+            border: "1px solid rgba(255,255,255,0.2)",
+            background: "transparent",
+            color: "#EDEDEA",
+            fontWeight: 600,
+            fontSize: "clamp(12px, 2.3vh, 15px)",
+            cursor: "pointer",
+          }}
+        >
+          종료
+        </button>
+        <button
+          onClick={() => {
+            overtimeNotifiedRef.current = false;
+            setMode((m) => (m === "auto" ? "manual" : "auto"));
+          }}
+          title="시간이 다 되면 자동으로 넘길지, 터치로 넘길지"
+          style={{
+            padding: "clamp(8px, 1.8vh, 12px) clamp(12px, 3vh, 20px)",
+            borderRadius: 12,
+            border: "1px solid rgba(255,255,255,0.2)",
+            background: mode === "manual" ? "rgba(255,255,255,0.1)" : "transparent",
+            color: "#EDEDEA",
+            fontWeight: 600,
+            fontSize: "clamp(12px, 2.3vh, 15px)",
+            cursor: "pointer",
+          }}
+        >
+          {mode === "auto" ? "자동 넘김" : "터치 넘김"}
         </button>
         <button
           onClick={() => setSoundOn((s) => !s)}
