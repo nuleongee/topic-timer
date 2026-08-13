@@ -61,7 +61,7 @@
 
 ## 진행 모드·통계 (T13)
 
-- 상태: `mode`("auto"|"manual"), `records`({sec, target}[]), `showStats`,
+- 상태: `mode`("auto"|"manual", 기본 "manual" — T19), `records`({sec, target}[]), `showStats`,
   `overtimeNotifiedRef`(초과 알림 1회 보장)
 - tick 분기: auto — 기존 wrap+advance. manual — elapsed 계속 증가,
   intervalSec 최초 통과 시 beep+flash 1회만
@@ -93,6 +93,9 @@
 
 - `(hover: hover)` 미디어 쿼리로 판별: 터치 전용 기기는 "터치하면 시작",
   마우스/키보드 기기는 "터치 또는 Space로 시작"
+- Space 키 동작(T19): 링 터치와 동일 분기 — 시작 전엔 시작, 실행 중엔
+  skipToNext(). 일시정지는 버튼 전용. keydown 리스너는 deps 없는 useEffect로
+  매 렌더 재등록해 항상 최신 running/skipToNext를 참조
 
 ## Vercel
 
