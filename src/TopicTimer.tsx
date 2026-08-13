@@ -52,7 +52,7 @@ export default function TopicTimer() {
   const [flash, setFlash] = useState(false);
   const [customOpen, setCustomOpen] = useState(false);
   const [customVal, setCustomVal] = useState("");
-  const [mode, setMode] = useState<"auto" | "manual">("auto");
+  const [mode, setMode] = useState<"auto" | "manual">("manual");
   const [records, setRecords] = useState<TopicRecord[]>([]);
   const [showStats, setShowStats] = useState(false);
 
@@ -152,17 +152,18 @@ export default function TopicTimer() {
       ?.setAttribute("content", deep);
   }, [cycle, flash]);
 
-  // 스페이스바 = 시작/일시정지
+  // 스페이스바 = 링 터치와 동일: 시작 전엔 시작, 실행 중엔 다음 토픽
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.code === "Space" && (e.target as HTMLElement).tagName !== "INPUT") {
         e.preventDefault();
-        setRunning((r) => !r);
+        if (running) skipToNext();
+        else setRunning(true);
       }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, []);
+  });
 
   const skipToNext = () => {
     // setRecords 업데이터는 지연 실행되므로 리셋 전에 값을 캡처
@@ -381,7 +382,9 @@ export default function TopicTimer() {
             }}
           >
             {running
-              ? "터치하면 다음 토픽으로"
+              ? HAS_POINTER
+                ? "터치 또는 Space로 다음 토픽"
+                : "터치하면 다음 토픽으로"
               : HAS_POINTER
                 ? "터치 또는 Space로 시작"
                 : "터치하면 시작"}
